@@ -12,23 +12,23 @@ function App() {
   const [api, setApi] = useState({});
   const iframeRef = useRef();
 
-  const resizeIframe = useCallback(() => {
-    if (iframeRef.current) {
-      const xOffset = iframeRef.current.getBoundingClientRect().x;
-      iframeRef.current.style.width = `${document.body.clientWidth - xOffset}px`;
-      const height = `${iframeRef.current.contentWindow.document.body.scrollHeight}px`;
-      console.log(height);
-      if (iframeRef.current.style.height !== height || height === '0px') {
-        iframeRef.current.style.height = height;
-        setTimeout(resizeIframe, 1000);
-      }
-    }
-  }, [iframeRef]);
-
-  // adjust the size of the documentation iframe when the window is resized
   useEffect(() => {
-    window.addEventListener('resize', resizeIframe);
-  }, [resizeIframe]);
+    const resizeIframe = () => {
+      if (iframeRef.current) {
+        const xOffset = iframeRef.current.getBoundingClientRect().x;
+        const width = `${document.body.clientWidth - xOffset}px`;
+        const height = `${iframeRef.current.contentWindow.document.body.scrollHeight}px`;
+        if (iframeRef.current.style.width !== width) {
+          iframeRef.current.style.width = width;
+        }
+        if (iframeRef.current.style.height !== height) {
+          iframeRef.current.style.height = height;
+        }
+      }
+    };
+    const intervalTimer = setInterval(resizeIframe, 250);
+    return () => clearInterval(intervalTimer);
+  }, [iframeRef]);
 
   // load the list of API versions from GitHub
   // note that anonymous calls to the GitHub API are rate limited
@@ -70,10 +70,6 @@ function App() {
       }))
     })();
   }, [version]);
-
-  useEffect(() => {
-    resizeIframe();
-  }, [api]);
 
   const onVersionSelected = (event) => {
     setVersion(event.target.innerText);
